@@ -1,0 +1,76 @@
+
+
+CREATE TABLE `User` (
+    UserID INT NOT NULL AUTO_INCREMENT,
+    UserName VARCHAR(255) NOT NULL,
+    Created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT PK_User PRIMARY KEY (UserID),
+    CONSTRAINT UQ_User_Name UNIQUE (UserName)
+);
+
+
+
+CREATE TABLE `Game` (
+    GameID INT NOT NULL AUTO_INCREMENT,
+    HostID INT NOT NULL,
+    WinnerID INT NULL,
+    LobbyCode VARCHAR(255) NOT NULL,
+    Status VARCHAR(255) NOT NULL DEFAULT 'Lobby',
+
+    CONSTRAINT PK_Game PRIMARY KEY (GameID),
+    CONSTRAINT UQ_Game_LobbyCode UNIQUE (LobbyCode),
+
+    CONSTRAINT FK_Game_Host
+        FOREIGN KEY (HostID) REFERENCES `User` (UserID),
+
+    CONSTRAINT FK_Game_Winner
+        FOREIGN KEY (WinnerID) REFERENCES `User` (UserID)
+);
+
+
+
+CREATE TABLE `GamePlayers` (
+    ParticipationID INT NOT NULL AUTO_INCREMENT,
+    GameID INT NOT NULL,
+    UserID INT NOT NULL,
+    Role VARCHAR(255) NOT NULL,
+    Remaining_Guesses INT NOT NULL DEFAULT 6,
+
+    CONSTRAINT PK_GamePlayers PRIMARY KEY (ParticipationID),
+
+    CONSTRAINT FK_GamePlayers_Game
+        FOREIGN KEY (GameID) REFERENCES `Game` (GameID),
+
+    CONSTRAINT FK_GamePlayers_User
+        FOREIGN KEY (UserID) REFERENCES `User` (UserID),
+
+    CONSTRAINT UQ_GamePlayers
+        UNIQUE (GameID, UserID)
+);
+
+
+
+CREATE TABLE `GameGuesses` (
+    GuessID INT NOT NULL AUTO_INCREMENT,
+    GameID INT NOT NULL,
+    ParticipationID INT NOT NULL,
+    Letter CHAR(1) NOT NULL,
+    IsCorrect BOOLEAN NOT NULL,
+    GuessOrder INT NOT NULL,
+
+    CONSTRAINT PK_GameGuesses PRIMARY KEY (GuessID),
+
+    CONSTRAINT FK_GameGuesses_Game
+        FOREIGN KEY (GameID) REFERENCES `Game` (GameID),
+
+    CONSTRAINT FK_GameGuesses_Participation
+        FOREIGN KEY (ParticipationID)
+        REFERENCES `GamePlayers` (ParticipationID),
+
+    CONSTRAINT UQ_GameGuesses_Letter
+        UNIQUE (GameID, Letter),
+
+    CONSTRAINT UQ_GameGuesses_Order
+        UNIQUE (GameID, GuessOrder)
+);
