@@ -20,7 +20,6 @@ from sqlalchemy.orm import (
     relationship
 )
 
-
 # BASE MODEL
 
 class Base(DeclarativeBase):
@@ -56,9 +55,6 @@ class User(Base):
     game_participations: Mapped[list["GamePlayer"]] = relationship(
         back_populates="user"
     )
-    __table_args__ = {
-        "implicit_returning": False  # Keeps MySQL compatible if it struggles with RETURNING clauses
-    }
 
 
 # GAME TABLE

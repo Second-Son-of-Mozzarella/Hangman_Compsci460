@@ -2,7 +2,7 @@
 
 from database.connection import engine, test_connection
 from database.models import Base
-import database.models  # Ensures models are registered with Base
+import database.models  
 
 from database.users import (
     create_user,
