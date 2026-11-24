@@ -50,57 +50,6 @@ def initialize_database():
 
 
 
-def test():
-    print("\n========== GAME SYSTEM TEST ==========\n")
-
-    # Generate unique test data for every run
-    test_id = uuid4().hex[:8].upper()
-
-    host = create_user(f"HostTest_{test_id}")
-    guesser = create_user(f"GuesserTest_{test_id}")
-
-    print("1. Creating game...")
-    game = create_game(
-        host_id=host.user_id,
-        lobby_code=f"TEST{test_id}"
-    )
-    print(f"Game ID: {game.game_id}")
-    print(f"Lobby Code: {game.lobby_code}")
-
-    print("\n2. Joining game...")
-    player = join_game(
-        game_id=game.game_id,
-        user_id=guesser.user_id
-    )
-    print(f"Participation ID: {player.participation_id}")
-
-    print("\n3. Retrieving players...")
-    players = get_game_players(game.game_id)
-    for p in players:
-        print(f"User ID: {p.user_id}, Role: {p.role}")
-
-    print("\n4. Starting game...")
-    update_game_status(game.game_id, "InProgress")
-
-    print("\n5. Recording guess...")
-    guess = create_guess(
-        game_id=game.game_id,
-        participation_id=player.participation_id,
-        letter="A",
-        is_correct=True,
-        positions=[0, 3]
-    )
-    print(f"Guess: {guess.letter}")
-    print(f"Correct: {guess.is_correct}")
-
-    print("\n6. Retrieving guesses...")
-    guesses = get_game_guesses(game.game_id)
-    for g in guesses:
-        print(f"{g.guess_order}: {g.letter}")
-
-    print("\n========== TEST COMPLETE ==========")
-
-
 def get_all_users_info():
     users = get_all_users()
     if not users:

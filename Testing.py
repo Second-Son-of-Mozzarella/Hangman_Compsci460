@@ -38,10 +38,60 @@ import DatabaseManager
 from uuid import uuid4
 
 
+def testBasic():
+    print("\n========== GAME SYSTEM TEST ==========\n")
+
+    # Generate unique test data for every run
+    test_id = uuid4().hex[:8].upper()
+
+    host = create_user(f"HostTest_{test_id}")
+    guesser = create_user(f"GuesserTest_{test_id}")
+
+    print("1. Creating game...")
+    game = create_game(
+        host_id=host.user_id,
+        lobby_code=f"TEST{test_id}"
+    )
+    print(f"Game ID: {game.game_id}")
+    print(f"Lobby Code: {game.lobby_code}")
+
+    print("\n2. Joining game...")
+    player = join_game(
+        game_id=game.game_id,
+        user_id=guesser.user_id
+    )
+    print(f"Participation ID: {player.participation_id}")
+
+    print("\n3. Retrieving players...")
+    players = get_game_players(game.game_id)
+    for p in players:
+        print(f"User ID: {p.user_id}, Role: {p.role}")
+
+    print("\n4. Starting game...")
+    update_game_status(game.game_id, "InProgress")
+
+    print("\n5. Recording guess...")
+    guess = create_guess(
+        game_id=game.game_id,
+        participation_id=player.participation_id,
+        letter="A",
+        is_correct=True,
+        positions=[0, 3]
+    )
+    print(f"Guess: {guess.letter}")
+    print(f"Correct: {guess.is_correct}")
+
+    print("\n6. Retrieving guesses...")
+    guesses = get_game_guesses(game.game_id)
+    for g in guesses:
+        print(f"{g.guess_order}: {g.letter}")
+
+    print("\n========== TEST COMPLETE ==========")
+
+
 def test():
     print("\n========== DATABASE MANAGER TEST ==========\n")
 
-    # Generate unique identifiers for this test run
     test_id = uuid4().hex[:8].upper()
 
     host_username = f"Host_{test_id}"
@@ -50,9 +100,6 @@ def test():
     lobby_code = f"TEST_{test_id}"
 
     try:
-        # ==========================================
-        # 1. USER MANAGEMENT
-        # ==========================================
 
         print("\n[1] TESTING USER MANAGEMENT")
 
@@ -65,7 +112,7 @@ def test():
 
         print("PASS: Users created.")
 
-        # Retrieve by ID
+
         retrieved_host = get_user(host.user_id)
 
         assert retrieved_host is not None
@@ -73,7 +120,7 @@ def test():
 
         print("PASS: Retrieve user by ID.")
 
-        # Retrieve by username
+  
         retrieved_guesser = get_user_by_username(guesser_username)
 
         assert retrieved_guesser is not None
@@ -81,7 +128,7 @@ def test():
 
         print("PASS: Retrieve user by username.")
 
-        # Retrieve all users
+
         users = get_all_users()
 
         assert any(u.user_id == host.user_id for u in users)
@@ -89,7 +136,6 @@ def test():
 
         print("PASS: Retrieve all users.")
 
-        # Update username
         updated_username = f"Updated_{test_id}"
 
         updated_host = update_username(
@@ -101,7 +147,6 @@ def test():
 
         print("PASS: Update username.")
 
-        # Test duplicate username rejection
         try:
             create_user(updated_username)
             raise AssertionError("Duplicate username was accepted.")
@@ -109,13 +154,8 @@ def test():
         except ValueError:
             print("PASS: Duplicate username rejected.")
 
-        # ==========================================
-        # 2. GAME MANAGEMENT
-        # ==========================================
-
         print("\n[2] TESTING GAME MANAGEMENT")
 
-        # Create game
         game = create_game(
             host_id=host.user_id,
             lobby_code=lobby_code
@@ -128,7 +168,6 @@ def test():
 
         print("PASS: Create game.")
 
-        # Retrieve game by ID
         retrieved_game = get_game(game.game_id)
 
         assert retrieved_game is not None
@@ -136,7 +175,6 @@ def test():
 
         print("PASS: Retrieve game by ID.")
 
-        # Retrieve game by lobby code
         retrieved_game = get_game_by_lobby_code(lobby_code)
 
         assert retrieved_game is not None
@@ -144,13 +182,9 @@ def test():
 
         print("PASS: Retrieve game by lobby code.")
 
-        # ==========================================
-        # 3. PLAYER MANAGEMENT
-        # ==========================================
 
         print("\n[3] TESTING PLAYER MANAGEMENT")
 
-        # Retrieve automatically created host participation
         players = get_game_players(game.game_id)
 
         assert len(players) == 1
@@ -159,7 +193,6 @@ def test():
 
         print("PASS: Host automatically added to game.")
 
-        # Join game as guesser
         guesser_player = join_game(
             game_id=game.game_id,
             user_id=guesser.user_id
@@ -171,20 +204,15 @@ def test():
 
         print("PASS: User joins game.")
 
-        # Retrieve all players
         players = get_game_players(game.game_id)
 
         assert len(players) == 2
 
         print("PASS: Retrieve game participants.")
 
-        # ==========================================
-        # 4. GAME STATUS MANAGEMENT
-        # ==========================================
 
         print("\n[4] TESTING GAME STATUS MANAGEMENT")
 
-        # Start game
         update_game_status(game.game_id, "InProgress")
 
         updated_game = get_game(game.game_id)
@@ -193,13 +221,9 @@ def test():
 
         print("PASS: Update game status to InProgress.")
 
-        # ==========================================
-        # 5. GUESS MANAGEMENT
-        # ==========================================
 
         print("\n[5] TESTING GUESS MANAGEMENT")
 
-        # Record a correct guess
         guess = create_guess(
             game_id=game.game_id,
             participation_id=guesser_player.participation_id,
@@ -214,7 +238,6 @@ def test():
 
         print("PASS: Record correct guess.")
 
-        # Record an incorrect guess
         incorrect_guess = create_guess(
             game_id=game.game_id,
             participation_id=players[0].participation_id,
@@ -229,19 +252,17 @@ def test():
 
         print("PASS: Record incorrect guess.")
 
-        # Retrieve guesses
         guesses = get_game_guesses(game.game_id)
 
         assert len(guesses) == 2
 
         print("PASS: Retrieve game guesses.")
 
-        # Verify guess ordering
         assert guesses[0].guess_order < guesses[1].guess_order
 
         print("PASS: Guess ordering.")
 
-        # Test duplicate guess rejection
+
         try:
             create_guess(
                 game_id=game.game_id,
@@ -256,10 +277,6 @@ def test():
         except ValueError:
             print("PASS: Duplicate guess rejected.")
 
-        # ==========================================
-        # 6. GAME COMPLETION
-        # ==========================================
-
         print("\n[6] TESTING GAME COMPLETION")
 
         finished_game = finish_game(
@@ -273,7 +290,6 @@ def test():
 
         print("PASS: Finish game.")
 
-        # Verify completion was saved
         retrieved_game = get_game(game.game_id)
 
         assert retrieved_game.status == "Completed"
@@ -281,31 +297,21 @@ def test():
 
         print("PASS: Verify completed game and winner.")
 
-        # ==========================================
-        # 7. USER DELETION
-        # ==========================================
-
         print("\n[7] TESTING USER DELETION")
 
-        # Create a separate user with no game relationships
         temporary_user = create_user(temporary_username)
 
         assert temporary_user is not None
 
-        # Delete temporary user
         delete_user(temporary_user.user_id)
 
-        # Verify deletion
         deleted_user = get_user(temporary_user.user_id)
 
         assert deleted_user is None
 
         print("PASS: Delete user.")
 
-        # ==========================================
-        # TEST COMPLETE
-        # ==========================================
-
+        
         print("\n==========================================")
         print("ALL DATABASE TESTS PASSED!")
         print("==========================================")
